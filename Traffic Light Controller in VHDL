@@ -1,0 +1,283 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 03/01/2023 02:43:22 PM
+-- Design Name: 
+-- Module Name: Lab5 - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity timer is
+    Port ( TSin : in STD_LOGIC;
+           Reset : in STD_LOGIC;
+           TSout : out STD_LOGIC);
+end timer;
+
+architecture Behavioral of timer is
+signal counter: integer:=0;
+begin
+process(TSin,Reset)
+
+begin 
+ if(Reset ='1') then counter<=0; TSout<='1';
+  elsif (TSin'event and TSin='1') then 
+  counter<=counter+1;
+  if (counter=4) then TSout<='0';
+  elsif(counter=5) then TSout<='1'; counter<=0;
+ 
+  end if;
+  end if;
+  end process;
+
+end Behavioral;
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 03/01/2023 03:00:51 PM
+-- Design Name: 
+-- Module Name: Decode - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity Decoder is
+    Port ( state_in : in STD_LOGIC_VECTOR (1 downto 0);
+           TriLED1: out STD_LOGIC_VECTOR (2 downto 0);
+           TriLED2 : out STD_LOGIC_VECTOR (2 downto 0));
+end Decoder;
+
+architecture Behavioral of Decoder is
+
+begin
+with state_in select TriLED1<=
+	"010" when "00",
+	"110" when "01",
+	"100" when "10",
+	"100" when "11";
+
+with state_in select TriLED2 <=
+	"100" when "00",
+	"100" when "01",
+	"010" when "10",
+	"110" when "11";
+end Behavioral;
+
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 03/08/2023 02:48:45 PM
+-- Design Name: 
+-- Module Name: FSM - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity FSM is
+    Port ( clk : in STD_LOGIC;
+           TS : in STD_LOGIC;
+           Sensor : in STD_LOGIC;
+           reset : in STD_LOGIC;
+           State_out : out STD_LOGIC_VECTOR (1 downto 0));
+end FSM;
+
+architecture Behavioral of FSM is
+type my_state is (GR,YR,RG,RY);
+signal current_state : my_state := GR;
+signal next_state: my_state:= GR;
+begin
+
+SEQ: process (clk, reset)
+begin 
+if (reset='1') then 
+ current_state<= GR;
+elsif (clk'event and clk='1') then 
+current_state<= next_state;
+end if;
+end process SEQ;
+
+COMB: process (current_state, TS, sensor)
+begin 
+case current_state is 
+
+when GR=> 
+if (TS='0' and sensor ='1') then
+next_state <= YR; State_out<="01";
+else
+next_state<= GR ; State_out<= "00";
+end if; 
+
+when YR=> 
+if (TS='1') then
+next_state <= RG ; State_out<="10";
+else
+next_state<= YR ; State_out<= "01";
+end if;
+
+when RG=> 
+if (TS='0') then
+next_state <= RY; State_out<="11";
+else
+next_state<= RG ; State_out<= "10";
+end if;
+ 
+when RY=> 
+if (TS='1') then
+next_state <= GR; State_out<="00";
+else
+next_state<= RY ; State_out<= "11";
+end if;
+
+end case;
+end process;
+end Behavioral;
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 03/08/2023 03:25:43 PM
+-- Design Name: 
+-- Module Name: Top_Design - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity Top_Design is
+    Port ( top_clk : in STD_LOGIC;
+           top_reset : in STD_LOGIC;
+           top_Sensor : in STD_LOGIC;
+           Top_TriLED1 : out STD_LOGIC_VECTOR (2 downto 0);
+           Top_TriLED2 : out STD_LOGIC_VECTOR (2 downto 0));
+end Top_Design;
+
+architecture Behavioral of Top_Design is
+Signal S1: STD_LOGIC;
+Signal S2: STD_LOGIC;
+Signal S3: STD_LOGIC_VECTOR (1 Downto 0);
+
+component clock_divider port ( clkin : in STD_LOGIC;
+           reset : in STD_LOGIC;
+           clkout : out STD_LOGIC);
+end component;
+
+component Decoder port  
+     ( state_in : in STD_LOGIC_VECTOR (1 downto 0);
+           TriLED1: out STD_LOGIC_VECTOR (2 downto 0);
+           TriLED2 : out STD_LOGIC_VECTOR (2 downto 0));
+end component;
+
+component timer port 
+ ( TSin : in STD_LOGIC;
+           Reset : in STD_LOGIC;
+           TSout : out STD_LOGIC);
+end component;
+
+component  FSM  port 
+     ( clk : in STD_LOGIC;
+           TS : in STD_LOGIC;
+           Sensor : in STD_LOGIC;
+           reset : in STD_LOGIC;
+           State_out : out STD_LOGIC_VECTOR (1 downto 0));
+end component;
+
+begin
+
+U1: clock_divider  port map (top_clk,top_reset,S1);
+U2: timer port map (S1, top_reset, S2);
+U3: FSM port map (top_clk, S2, top_sensor,top_reset,S3);
+U4: Decoder port map ( S3, Top_TriLED1,Top_TriLED2);
+
+
+end Behavioral;
+
