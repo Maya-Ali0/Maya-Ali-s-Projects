@@ -1,0 +1,558 @@
+--Maya Ali / Rasha Malaaeb/ Zaynab Al Haj
+-- Code your design here
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+--Code your design here neww adjusted
+library ieee;
+use ieee.std_logic_1164.all;
+--FA
+entity FA is
+  port( A: in std_logic;
+        B: in std_logic;
+        CIN: in std_logic;
+        S: out std_logic;
+        COUT: out std_logic
+       );
+end FA;
+
+architecture dataflow1 of FA  is
+begin
+  S <= (A XOR B) XOR CIN;
+  COUT <= (A AND B) OR (A AND CIN) OR (B AND CIN);
+end dataflow1;
+
+--AplusB
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity add is
+port( A: in std_logic_vector(8 downto 1);
+     B: in std_logic_vector(8 downto 1);
+        CIN: in std_logic;
+     S: out std_logic_vector(8 downto 1);
+     Cout: out std_logic );
+end add;
+
+architecture add_arch of add is
+  component FA
+    port( A: in std_logic;
+          B: in std_logic;
+          CIN: in std_logic;
+          S: out std_logic;
+          Cout: out std_logic
+         );
+   end component;
+signal Z: std_logic_vector(9 downto 1);
+  
+begin
+  Z(1) <= CIN;
+  g1: for i in 1 to 8 generate
+    U1: FA port map(A=>A(i),B=>B(i),CIN=>Z(i),S=>S(i),COUT=>Z(i+1));
+	
+  end generate;
+  Cout<=Z(9);
+end add_arch;
+    
+--Increment A by 1
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity incrementA is
+    port( A: in std_logic_vector(8 downto 1);
+         S: out std_logic_vector(8 downto 1);
+         Cout: out std_logic;
+       );
+end incrementA;
+
+architecture incrementA_arch of incrementA is
+  component add
+    port( A: in std_logic_vector(8 downto 1);
+         B: in std_logic_vector(8 downto 1);
+          CIN: in std_logic;
+         S: out std_logic_vector(8 downto 1);
+         Cout: out std_logic
+         );
+  end component;
+  
+begin
+  U: add port map(A=>A,B=>"00000001",CIN=>'0',S=>S,Cout=>Cout);
+end incrementA_arch;
+
+    
+--A minus B   
+library ieee;
+use ieee.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+entity Subt is
+    port( A: in std_logic_vector(8 downto 1);
+         B: in std_logic_vector(8 downto 1);
+         S: out std_logic_vector(8 downto 1);
+         Cout: out std_logic;
+       );
+end Subt;
+
+architecture Subt_arch of Subt is
+  component add
+    port( A: in std_logic_vector(8 downto 1);
+         B: in std_logic_vector(8 downto 1);
+          CIN: in std_logic;
+         S: out std_logic_vector(8 downto 1);
+         Cout: out std_logic;
+         );
+  end component;
+    signal Bcomp: std_logic_vector(8 downto 1);
+begin
+    Bcomp <= std_logic_vector(unsigned(not B) + 1);
+    s1: add port map(A=>A,B=>Bcomp,CIN=>'1',S=>S,Cout=>Cout);
+end Subt_arch;
+    
+--Decrement A by 1
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity decrementA is
+    port( A: in std_logic_vector(8 downto 1);
+         S: out std_logic_vector(8 downto 1);
+         Cout: out std_logic;
+       );
+end decrementA;
+
+architecture decrementA_arch of decrementA is
+  component Subt
+    port( A: in std_logic_vector(8 downto 1);
+         B: in std_logic_vector(8 downto 1);
+         S: out std_logic_vector(8 downto 1);
+         Cout: out std_logic;
+        );
+  end component;
+  begin
+    U1: Subt port map(A=>A,B=>"00000001",S=>S,Cout=>Cout);
+end decrementA_arch;
+
+--Minimum of A and B
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity min is
+    port( A: in std_logic_vector(8 downto 1);
+         B: in std_logic_vector(8 downto 1);
+         F: out std_logic_vector(8 downto 1)
+      );
+end min;
+
+architecture min_arch of min is
+  component Subt
+    port( A: in std_logic_vector(8 downto 1);
+         B: in std_logic_vector(8 downto 1);
+         S: out std_logic_vector(8 downto 1)
+        );
+  end component;
+    signal S:std_logic_vector(8 downto 1);
+    signal W:std_logic_vector(8 downto 1);
+begin
+  U1: Subt port map (A=>A,B=>B,S=>S);
+  process(A,B,S,W)
+    begin
+      if(A(8)='1' AND B(8)='0') then W<=A;
+      elsif(A(8)='0' AND B(8)='1') then W<=B;
+    else
+      if(S(8)='0') then W<=B;
+      else W<=A;
+      end if;
+    end if;
+    
+    for i in 8 downto 1 loop
+      F(i)<=W(i);
+    end loop;
+  end process;
+end min_arch;
+
+--Maximum of A and B
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity max is
+  port( A: in std_logic_vector(8 downto 1);
+        B: in std_logic_vector(8 downto 1);
+        F: out std_logic_vector(8 downto 1)
+      );
+end max;
+
+architecture max_arch of max is
+  component Subt
+    port( A: in std_logic_vector(8 downto 1);
+          B: in std_logic_vector(8 downto 1);
+          S: out std_logic_vector(8 downto 1)
+        );
+  end component;
+  signal S:std_logic_vector(8 downto 1);
+  signal W:std_logic_vector(8 downto 1);
+begin
+  U1: Subt port map (A=>A,B=>B,S=>S);
+  process(A,B,S,W)
+    begin
+    if(A(8)='1' AND B(8)='0') then W<=B;
+    elsif(A(8)='0' AND B(8)='1') then W<=A;
+    else
+      if(S(8)='0') then W<=A;
+      else W<=B;
+      end if;
+    end if;
+    
+    for i in 8 downto 1 loop
+      F(i)<=W(i);
+    end loop;
+  end process;
+end max_arch;
+
+---Circular right shift of A
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity rshift is
+  port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+end rshift;
+
+architecture rshift_arch of rshift is
+signal M:  std_logic_vector(8 downto 1) ;
+begin 
+  g1: for i in 2 to 8 generate 
+   p1:  process (A)
+     begin
+      if (i<= 8) then M(i)<=A(1);
+      else M(i)<=A(i+1);
+      end if;
+      end process;
+end generate g1;
+
+A2<=M;
+end rshift_arch;
+--Circular left shift of A
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity lshift is
+  port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+end lshift;
+
+architecture lshift_arch of lshift is
+signal M:  std_logic_vector(8 downto 1);
+  begin 
+   g1: for i in 2 to 8 generate
+   p2: process (A)
+     begin
+      if i<= 1 then M(i)<=A(8);
+      else M(i)<=A(i-1);
+      end if;
+      end process;
+      end generate g1;
+A2<=M;
+end lshift_arch;
+--Right shift of A with feed 0
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity frshift is
+  port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+end frshift;
+
+architecture frshift_arch of frshift is
+  component rshift
+    port( A: in std_logic_vector(8 downto 1);
+          A2: out std_logic_vector(8 downto 1)
+        );
+  end component;
+
+begin
+  U: rshift port map(A=>A,A2=>A2);
+  A2(7)<='0';
+end frshift_arch;
+--Left shift of A with feed 0
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity flshift is
+  port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+end flshift;
+
+architecture flshift_arch of flshift is
+  component lshift
+    port( A: in std_logic_vector(8 downto 1);
+          A2: out std_logic_vector(8 downto 1)
+        );
+  end component;
+begin
+  U: lshift port map(A=>A,A2=>A2);
+  A2(1)<='0';
+end flshift_arch;
+
+--Right shift with MSB replication
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity rrshift is
+  port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+end rrshift;
+
+architecture rrshift_arch of rrshift is
+  component rshift
+    port( A: in std_logic_vector(8 downto 1);
+          A2: out std_logic_vector(8 downto 1)
+        );
+  end component;
+begin
+  U: rshift port map(A=>A,A2=>A2);
+  A2(7)<=A2(6);
+end rrshift_arch;
+--Left shift of A with LSB replication
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity rlshift is
+  port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+end rlshift;
+
+architecture rlshift_arch of rlshift is
+  component lshift
+    port( A: in std_logic_vector(8 downto 1);
+          A2: out std_logic_vector(8 downto 1)
+        );
+  end component;
+ 
+begin
+  U: lshift port map(A=>A,A2=>A2);
+  A2(1) <=A2(2);
+end rlshift_arch;
+
+--Implement
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity implementation is
+  port( A: in std_logic_vector(8 downto 1);
+        B: in std_logic_vector(8 downto 1);
+        C: in std_logic_vector(4 downto 1);
+        F: out std_logic_vector(8 downto 1) 
+      );
+end implementation;
+
+architecture implementation_arch of implementation is
+  component Add
+    port(A : in STD_LOGIC_VECTOR(8 downto 1);
+             B : in STD_LOGIC_VECTOR( 8 downto 1);
+             Cin: in STD_LOGIC;
+             S : out STD_LOGIC_VECTOR(8 downto 1);
+         Cout : out STD_LOGIC);
+  end component;
+  component incrementA
+    port( A: in std_logic_vector(8 downto 1);
+        S: out std_logic_vector(8 downto 1);
+        Cout: out std_logic
+       );
+  end component;
+  component Subt
+    port(A,B:in std_LOGIC_VECTOR(8 downto 1);
+  S: OUT std_logic_vector(8 downto 1);
+  Cout: out std_logic
+  );
+  end component;
+  component decrementA
+    port( A: in std_logic_vector(8 downto 1);
+        S: out std_logic_vector(8 down to 1);
+        Cout: out std_logic
+       );
+  end component;
+
+  component min
+    port( A: in std_logic_vector(8 downto 1);
+          B: in std_logic_vector(8 downto 1);
+          F: out std_logic_vector(8 downto 1)
+        );
+  end component;
+  component max
+    port( A: in std_logic_vector(8 downto 1);
+          B: in std_logic_vector(8 downto 1);
+          F: out std_logic_vector(8 downto 1)
+        );
+  end component;
+
+  component rshift
+    port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+  end component;
+  
+  component lshift
+    port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+  end component;
+  component frshift
+    port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+  end component;
+  component flshift
+    port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+  end component;
+  component rrshift
+    port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+  end component;
+  component rlshift
+    port( A: in std_logic_vector(8 downto 1);
+        A2: out std_logic_vector(8 downto 1)
+      );
+  end component;
+  
+signal F1,F2,F3,F4,F5,F6:std_logic_vector( 8 downto 1);
+signal F7,F8,F9,F10,F11,F12:std_logic_vector(8 downto 1);
+signal m1,m2,m3,m4:std_logic;
+
+
+
+begin
+  U1 : Add port map(A=>A,B=>B,CIN=>'0',S=>F1,cout=>m1);
+  U2 : incrementA port map(A=>A,S=>F2,cout=>m2);
+  U3 : Subt port map(A=>A,B=>B,S=>F3,cout=>m3);
+  U4 : decrementA port map(A=>A,S=>F4,cout=>m4);
+  U5 : min port map(A=>A,B=>B,F=>F5);
+  U6 : max port map(A=>A,B=>B,F=>F6);
+  U7 : rshift port map(A=>A,A2=>F7);
+  U8 : lshift port map(A=>A,A2=>F8);
+  U9 : frshift port map(A=>A,A2=>F9);
+  U10 : flshift  port map(A=>A,A2=>F10);
+  U11 : rrshift port map(A=>A,A2=>F11);
+  U12 : rlshift port map(A=>A,A2=>F12);
+  
+  with C select F <=
+  F1 when "0001",
+  F2 when "0010",
+  F3 when "0011",
+  F4 when "0100",
+  F5 when "0110",
+  F6 when "0111",
+  F7 when "1000",
+  F8 when "1001",
+  F9 when "1010",
+  F10 when "1011",
+  F11 when "1100",
+  F12 when "1101",
+  (others=>'0') when others;
+
+end implementation_arch;
+
+//testbench
+--Maya Ali / Rasha Malaaeb/ Zaynab Al Haj
+-- Code your testbench here
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity testbench is
+end testbench;
+
+architecture testbench_arch of testbench is
+  component implementation
+    port( A: in std_logic_vector(8 downto 1);
+        B: in std_logic_vector(8 downto 1);
+        C: in std_logic_vector(4 downto 1);
+        F: out std_logic_vector(8 downto 1)
+      );
+  end component;
+  
+  signal A: std_logic_vector(8 downto 1):="00000000";
+  signal B: std_logic_vector(8 downto 1):="00000000";
+  signal C: std_logic_vector(4 downto 1):="0000";
+  signal F: std_logic_vector(8 downto 1);
+  
+  begin
+    U: implementation port map(A=>A,B=>B,C=>C,F=>F);
+    process
+      begin
+                    C<="0001";A<="00000000";B<="11111110";wait for 20 ns; 
+		             C<="0001"; A<="00110010";B<="00110010";wait for 20 ns;
+		             C<="0001"; A<="00110010";B<="01001011";wait for 20 ns;
+		              C<="0001"; A<="11001110";B<="10110011";wait for 20 ns;
+                      	       C<="0001";A<="01100100";B<="10011100";wait for 20 ns;
+        
+                    C<="0010";A<="00000000";B<="11111110";wait for 20 ns; 
+		              C<="0010";A<="00110010";B<="00110010";wait for 20 ns;
+		              C<="0010";A<="00110010";B<="01001011";wait for 20 ns;
+		              C<="0010";A<="11001110";B<="10110011";wait for 20 ns;
+                              C<="0010";A<="01100100";B<="10011100";wait for 20 ns;
+		
+	     	    C<="0011";A<="00000000";B<="11111110";wait for 20 ns; 
+		               C<="0011";A<="00110010";B<="00110010";wait for 20 ns;
+		               C<="0011";A<="00110010";B<="01001011";wait for 20 ns;
+		               C<="0011";A<="11001110";B<="10110011";wait for 20 ns;
+                               C<="0011";A<="01100100";B<="10011100";wait for 20 ns;
+		
+		    C<="0100";A<="00000000";B<="11111110";wait for 20 ns; 
+		               C<="0100";A<="00110010";B<="00110010";wait for 20 ns;
+		               C<="0100";A<="00110010";B<="01001011";wait for 20 ns;
+		               C<="0100";A<="11001110";B<="10110011";wait for 20 ns;
+                               C<="0100";A<="01100100";B<="10011100";wait for 20 ns;
+		
+		              
+		    C<="0110";A<="00000000";B<="11111110";wait for 20 ns; 
+		               C<="0110";A<="00110010";B<="00110010";wait for 20 ns;
+		               C<="0110";A<="00110010";B<="01001011";wait for 20 ns;
+		               C<="0110";A<="11001110";B<="10110011";wait for 20 ns;
+                               C<="0110";A<="01100100";B<="10011100";wait for 20 ns;
+		
+		    C<="0111";A<="00000000";B<="11111110";wait for 20 ns; 
+		               C<="0111";A<="00110010";B<="00110010";wait for 20 ns;
+		               C<="0111";A<="00110010";B<="01001011";wait for 20 ns;
+		               C<="0111";A<="11001110";B<="10110011";wait for 20 ns;
+                               C<="0111";A<="01100100";B<="10011100";wait for 20 ns;
+		
+		              
+		    C<="1000";A<="11001101";wait for 20 ns; 
+		    C<="1000";A<="01010101";wait for 20 ns; 
+                          C<="1000";     A<="11001101";wait for 20 ns; 
+                              A<="01010101";wait for 10 ns; 
+                      
+		    C<="1001";A<="11001101";wait for 20 ns; 
+		              C<="1001"; A<="01010101";wait for 20 ns; 
+                             C<="1001";  A<="11001101";wait for 20 ns; 
+                             C<="1001";  A<="01010101";wait for 20 ns; 
+                      
+		    C<="1010";A<="11001101";wait for 20 ns; 
+		    C<="1010";A<="01010101";wait for 20 ns; 
+            C<="1010";     A<="11001101";wait for 20 ns; 
+            C<="1010";                A<="01010101";wait for 20 ns; 
+		              
+		    C<="1011";A<="11001101";wait for 20 ns; 
+		    C<="1011";A<="01010101";wait for 20 ns; 
+               C<="1011";A<="11001101";wait for 20 ns; 
+             C<="1011";A<="01010101";wait for 20 ns; 
+		
+		    C<="1100";A<="11001101";wait for 20 ns; 
+		   C<="1100";A<="01010101";wait for 20 ns; 
+            C<="1100";  A<="11001101";wait for 20 ns; 
+            C<="1100"; A<="01010101";wait for 20 ns; 
+ 
+ 		    C<="1101";A<="11001101";wait for 20 ns; 
+		    C<="1101"; A<="01010101";wait for 20 ns; 
+             C<="1101";A<="11001101";wait for 20 ns; 
+             C<="1101"; A<="01010101";wait for 20 ns;     
+        wait;
+    end process;
+end testbench_arch;
